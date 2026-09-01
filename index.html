@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#F2F6FF">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BurN1nG">
@@ -101,6 +101,25 @@ body{
 }
 .tally strong{color:var(--ink);font-weight:500}
 
+.installbtn{display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:.82rem;font-weight:700;white-space:nowrap;
+  color:var(--bg);background:linear-gradient(135deg,var(--sea),var(--brass));border:0;
+  padding:.4rem .8rem;border-radius:var(--r);box-shadow:var(--glow) color-mix(in srgb,var(--sea) 40%,transparent);
+  transition:transform .12s,box-shadow .15s}
+.installbtn:hover{transform:translateY(-1px);box-shadow:var(--glow) color-mix(in srgb,var(--sea) 60%,transparent)}
+[data-theme="light"] .installbtn{color:#fff}
+.installbtn[hidden]{display:none}
+.ios-help{position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--elev);border-top:1px solid var(--line);
+  box-shadow:0 -6px 30px rgba(0,0,0,.3);padding:1.1rem 1.3rem 1.5rem;transform:translateY(100%);
+  transition:transform .3s ease;max-width:520px;margin:0 auto;border-radius:12px 12px 0 0}
+.ios-help.up{transform:translateY(0)}
+.ios-help h4{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:1rem;margin-bottom:.5rem;color:var(--brass)}
+.ios-help .step{display:flex;gap:.5rem;align-items:flex-start;margin:.4rem 0;font-size:.86rem;color:var(--ink);line-height:1.6}
+.ios-help .step b{color:var(--sea)}
+.ios-help .share{display:inline-block;width:18px;height:18px;vertical-align:-4px}
+.ios-help button.close{margin-top:.7rem;width:100%;background:var(--brass);color:var(--bg);border:0;
+  padding:.55rem;border-radius:var(--r);font-weight:600;cursor:pointer;font-family:inherit}
+[data-theme="light"] .ios-help button.close{color:#fff}
 .doclink{display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;color:var(--iris);
   font-family:'IBM Plex Sans Condensed',sans-serif;font-size:.82rem;font-weight:600;
   border:1px solid color-mix(in srgb,var(--iris) 45%,var(--line));padding:.34rem .7rem;border-radius:var(--r);
@@ -108,6 +127,14 @@ body{
 .doclink:hover{color:var(--bg);background:var(--iris);border-color:var(--iris)}
 [data-theme="light"] .doclink:hover{color:#fff}
 @media (max-width:600px){.doclink span.lbl{display:none}}
+@media (max-width:520px){
+  .masthead-in{gap:.4rem}
+  .masthead .logo-mark{order:0}
+  .wordmark{flex:1 1 100%;order:1;margin:0 0 .15rem}
+  .theme-switch{order:2;margin-left:auto}
+  .installbtn{order:3}
+  .doclink{order:4}
+}
 .theme-switch{
   display:flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg);
 }
@@ -347,8 +374,14 @@ body{
   .logo-mark{height:44px;width:auto;flex:none;display:block;
   filter:drop-shadow(0 0 10px color-mix(in srgb,var(--brass) 40%,transparent));}
 [data-theme="light"] .logo-mark{filter:drop-shadow(0 1px 3px rgba(20,40,80,.28));}
-.masthead-in{padding:.7rem 1.1rem;gap:.8rem}
+.masthead-in{padding:.6rem .9rem;gap:.55rem;flex-wrap:wrap}
+  .masthead .logo-mark{height:36px}
+  .wordmark{margin-right:auto}
+  .wordmark .name{font-size:1.06rem}
+  .wordmark .eyebrow{display:none}
   .tally{display:none}
+  .installbtn{font-size:.74rem;padding:.34rem .55rem}
+  .doclink{font-size:.74rem;padding:.3rem .5rem}
   .bench-in{padding:0 1.1rem}
   .colophon-in{padding:1.2rem 1.1rem}
   .warn{margin-left:0;width:100%}
@@ -366,6 +399,7 @@ body{
       <span class="name">BurN1nG<b>SPheRE</b></span>
     </div>
     <div class="tally" id="tally"></div>
+    <button class="installbtn" id="installBtn" onclick="doInstall()" hidden>⬇ ติดตั้งแอป</button>
     <a class="doclink" href="https://burn1ngsphere.github.io/Portal.html" target="_blank"><i class="fa-brands fa-github"></i>Github Project Portal</a>
     <a class="doclink" href="reference.html" title="เอกสารอ้างอิง: สิทธิ Se / BloodHound / AD groups / Linux">📖 Reference</a>
     <div class="theme-switch" role="group" aria-label="ธีมสีหน้าจอ">
@@ -423,6 +457,14 @@ body{
   </div>
 </footer>
 
+<div class="ios-help" id="iosHelp">
+  <h4>📲 ติดตั้งลงหน้าจอโฮม (iPhone/iPad)</h4>
+  <div class="step"><b>1.</b><span>กดปุ่ม <b>แชร์</b> <svg class="share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg> ที่แถบล่างของ Safari</span></div>
+  <div class="step"><b>2.</b><span>เลื่อนหาแล้วเลือก <b>"เพิ่มลงในหน้าจอโฮม" (Add to Home Screen)</b></span></div>
+  <div class="step"><b>3.</b><span>กด <b>เพิ่ม (Add)</b> — เสร็จแล้วเปิดใช้ได้เหมือนแอป ออฟไลน์ได้ด้วย</span></div>
+  <button class="close" onclick="document.getElementById('iosHelp').classList.remove('up')">เข้าใจแล้ว</button>
+</div>
+
 <div class="scrim" id="scrim" onclick="if(event.target===this)closeSheet()">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet-hd">
@@ -453,7 +495,7 @@ function setTheme(t){
   document.getElementById("btnDark").setAttribute("aria-pressed",t==="dark");
   document.getElementById("btnLight").setAttribute("aria-pressed",t==="light");
   const m=document.querySelector('meta[name="theme-color"]');
-  if(m)m.setAttribute("content",t==="dark"?"#070B12":"#EEF2FA");
+  if(m)m.setAttribute("content",t==="dark"?"#070B12":"#F2F6FF");
   try{localStorage.setItem("burn_theme",t)}catch(e){}
 }
 (function(){
@@ -630,6 +672,19 @@ document.addEventListener("keydown",e=>{
 });
 
 buildFields();buildNav();buildStack();sift();
+/* ---- PWA install ---- */
+let deferredPrompt=null;
+const installBtn=document.getElementById("installBtn");
+function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;}
+window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredPrompt=e;if(installBtn&&!isStandalone())installBtn.hidden=false;});
+function doInstall(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;if(installBtn)installBtn.hidden=true;});}
+  else if(isIOS()){document.getElementById("iosHelp").classList.add("up");}
+}
+window.addEventListener("appinstalled",()=>{if(installBtn)installBtn.hidden=true;deferredPrompt=null;});
+if(installBtn&&isIOS()&&!isStandalone())installBtn.hidden=false;
+
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 </script>
 </body>
